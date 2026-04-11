@@ -82,12 +82,16 @@ ccsm info <session-id>
 
 ```bash
 # Preview what would be deleted (recommended first)
+ccsm delete <session-id> -n
+# or
 ccsm delete <session-id> --dry-run
 
 # Delete with confirmation prompt
 ccsm delete <session-id>
 
 # Delete without confirmation
+ccsm delete <session-id> -y
+# or
 ccsm delete <session-id> --force
 ```
 
@@ -98,22 +102,25 @@ ccsm delete <session-id> --force
 
 ```bash
 # Preview what would be deleted
-ccsm delete-project "~/path/to/project" --dry-run
+ccsm delete-project "~/path/to/project" -n
 
 # Delete project (keeps .claude/ directory)
-ccsm delete-project "~/path/to/project"
+ccsm delete-project "~/path/to/project" -y
 
 # Delete project AND its .claude/ directory
-ccsm delete-project "~/path/to/project" --include-claude-dir
+ccsm delete-project "~/path/to/project" --include-claude-dir -y
 ```
 
 ### Cleanup Orphaned Sessions
 
 ```bash
 # List orphaned sessions (sessions without projects)
+# Cleanup is a dry-run by default
 ccsm cleanup
 
 # Delete all orphaned sessions automatically
+ccsm cleanup -y
+# or
 ccsm cleanup --auto-remove
 ```
 
@@ -121,9 +128,11 @@ ccsm cleanup --auto-remove
 
 ```bash
 # Launch interactive TUI
+ccsm -i
+# or
 ccsm interactive
 # or shorthand
-ccsm -i
+ccsm i
 ```
 
 ![CCSM TUI Orphans](images/tui-orphan-sessions.png)
@@ -158,7 +167,7 @@ CCSM manages data in the following Claude Code directories:
 
 ## Important Notes
 
-- Always use `--dry-run` first to preview what will be deleted
+- Always use `-n` (or `--dry-run`) first to preview what will be deleted (note: `cleanup` is a dry-run by default)
 - `paste-cache` files are shared across sessions with reference counting
 - Global plans (`~/.claude/plans/*.md`) are never automatically deleted
 - The safest way to clean orphans is `ccsm delete <orphan-id> --force` one at a time

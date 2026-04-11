@@ -34,6 +34,11 @@ def create_parser() -> argparse.ArgumentParser:
         action="version",
         version="ccsm 1.0.0",
     )
+    parser.add_argument(
+        "-i", "--interactive",
+        action="store_true",
+        help="Launch interactive TUI mode",
+    )
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
@@ -71,12 +76,12 @@ def create_parser() -> argparse.ArgumentParser:
         help="Session ID to delete",
     )
     delete_session_parser.add_argument(
-        "--dry-run",
+        "-n", "--dry-run",
         action="store_true",
         help="Preview what would be deleted without actually deleting",
     )
     delete_session_parser.add_argument(
-        "-f", "--force",
+        "-f", "-y", "--force", "--yes",
         action="store_true",
         help="Skip confirmation for active sessions",
     )
@@ -99,12 +104,12 @@ def create_parser() -> argparse.ArgumentParser:
         help="Also delete the project's .claude/ directory",
     )
     delete_project_parser.add_argument(
-        "--dry-run",
+        "-n", "--dry-run",
         action="store_true",
         help="Preview what would be deleted without actually deleting",
     )
     delete_project_parser.add_argument(
-        "-f", "--force",
+        "-f", "-y", "--force", "--yes",
         action="store_true",
         help="Skip confirmation prompts",
     )
@@ -117,12 +122,7 @@ def create_parser() -> argparse.ArgumentParser:
     # Cleanup command
     cleanup_parser = subparsers.add_parser("cleanup", help="Clean up orphaned sessions (without projects)")
     cleanup_parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Preview what would be cleaned up without actually cleaning",
-    )
-    cleanup_parser.add_argument(
-        "--auto-remove",
+        "-y", "-a", "--auto-remove", "--yes",
         action="store_true",
         help="Automatically remove orphaned data without prompting",
     )
@@ -289,10 +289,8 @@ def cmd_delete_project(args: argparse.Namespace) -> int:
 
 def cmd_cleanup(args: argparse.Namespace) -> int:
     """Handle the 'cleanup' command."""
-    deleter = SessionDeleter(dry_run=args.dry_run)
-
-    if args.dry_run:
-        console.print("[yellow]DRY RUN - No files will be actually cleaned[/yellow]\n")
+    # Note: cleanup is a dry-run by default unless --auto-remove/--yes is used
+    deleter = SessionDeleter()
 
     result = deleter.cleanup(auto_remove=args.auto_remove)
     format_cleanup_result(result)
@@ -314,6 +312,10 @@ def main() -> int:
     """Main entry point."""
     parser = create_parser()
     args = parser.parse_args()
+
+    # Handle global flags
+    if args.interactive:
+        args.command = "interactive"
 
     if not args.command:
         parser.print_help()

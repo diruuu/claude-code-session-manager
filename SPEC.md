@@ -122,8 +122,8 @@ ccsm delete <session_id> [OPTIONS]
 11. `~/.claude/history.jsonl` - 流式處理移除該 session 的紀錄
 
 **選項**:
-- `--dry-run` - 預覽要刪除的檔案，不實際刪除
-- `-f, --force` - 跳過確認提示（對 active session 也強制刪除）
+- `-n, --dry-run` - 預覽要刪除的檔案，不實際刪除
+- `-f, -y, --force, --yes` - 跳過確認提示（對 active session 也強制刪除）
 - `-v, --verbose` - 顯示詳細刪除過程
 - `--json` - JSON 格式輸出刪除結果
 
@@ -142,8 +142,8 @@ ccsm delete-project <project_path> [OPTIONS]
 
 **選項**:
 - `--include-claude-dir` - 刪除專案的 `.claude/` 目錄
-- `--dry-run` - 預覽
-- `-f, --force` - 跳過確認
+- `-n, --dry-run` - 預覽
+- `-f, -y, --force, --yes` - 跳過確認
 - `-v, --verbose` - 詳細輸出
 - `--json` - JSON 格式輸出刪除結果
 
@@ -183,7 +183,8 @@ ccsm cleanup [OPTIONS]
 **功能**:
 - 識別不存在於任何專案中的 session (孤立資料)
 - 識別 history.jsonl 中已不存在於資料目錄的過時項目 (stale entries)
-- 選項: `--dry-run`, `--auto-remove` (自動刪除孤立資料 + 清理過時 history 項目)
+- 預設行為: 僅列出 (Dry Run)
+- 選項: `-y, -a, --auto-remove, --yes` (自動刪除孤立資料 + 清理過時 history 項目)
 - 其他旗標: `--verbose`, `--json`
 
 ### 3.6 互動模式 (TUI)
@@ -192,6 +193,8 @@ ccsm cleanup [OPTIONS]
 ccsm interactive
 # 或簡寫
 ccsm -i
+# 或命令別名
+ccsm i
 ```
 
 **功能**:
@@ -324,15 +327,15 @@ ccsm info 012e2e2d-fde5-4146-bc11-15a436a8d46b
 
 # 刪除會話
 ccsm delete 012e2e2d-fde5-4146-bc11-15a436a8d46b
-ccsm delete 012e2e2d-fde5-4146-bc11-15a436a8d46b --dry-run
+ccsm delete 012e2e2d-fde5-4146-bc11-15a436a8d46b -n
 
 # 刪除專案
 ccsm delete-project "~/Documents/Dev/FYP-LLM"
-ccsm delete-project "~/Documents/Dev/FYP-LLM" --include-claude-dir
+ccsm delete-project "~/Documents/Dev/FYP-LLM" --include-claude-dir -y
 
 # 清理懸空資料
-ccsm cleanup
-ccsm cleanup --auto-remove
+ccsm cleanup        # 預設為預覽模式 (dry-run)
+ccsm cleanup -y     # 實際刪除 (或用 -a, --auto-remove)
 
 # 啟動互動模式 (TUI)
 ccsm interactive

@@ -53,7 +53,7 @@ The tool manages data in `~/.claude/` with these key relationships:
 
 - **Plans**: Global `~/.claude/plans/*.md` are **NOT** deleted by session deletion (they may be shared). Project-level plans are deleted only when using `--include-claude-dir`.
 
-- **Orphan sessions**: Sessions without a project (not found in history.jsonl's `project` field). Can be cleaned with `ccsm cleanup`.
+- **Orphan sessions**: Sessions that have data in data directories (tasks/, todos/, etc.) but no corresponding .jsonl transcript file in projects/. Can be cleaned with `ccsm cleanup`.
 
 ## Commands (actual CLI)
 
@@ -68,18 +68,18 @@ ccsm list --project "~/path/to/project"  # Filter to specific project
 ccsm info <session_id>                 # Show session info + deletion plan
 
 # Delete a session
-ccsm delete <session_id> --dry-run     # Preview what would be deleted
-ccsm delete <session_id> --force       # Actually delete (no confirmation)
+ccsm delete <session_id> -n            # Preview what would be deleted
+ccsm delete <session_id> -y            # Actually delete (no confirmation)
 
 # Delete a project (all its sessions)
-ccsm delete-project "~/path/to/project" --dry-run
-ccsm delete-project "~/path/to/project" --include-claude-dir --force
+ccsm delete-project "~/path/to/project" -n
+ccsm delete-project "~/path/to/project" --include-claude-dir -y
 
 # Clean up orphaned sessions
-ccsm cleanup --dry-run                 # List orphans
-ccsm cleanup --auto-remove             # Delete all orphans (CAUTION: large blast radius)
+ccsm cleanup                           # List orphans (dry-run by default)
+ccsm cleanup -y                        # Delete all orphans (CAUTION: large blast radius)
 # Safer alternative: delete specific orphan
-ccsm delete <orphan_session_id> --force
+ccsm delete <orphan_session_id> -y
 ```
 
 ## Usage Scenarios for Agents
@@ -91,30 +91,30 @@ ccsm delete <orphan_session_id> --force
 ccsm list --json | jq '.projects[].sessions[] | .id'
 
 # 2. Check what would be deleted
-ccsm delete <session_id> --dry-run
+ccsm delete <session_id> -n
 
 # 3. Actually delete
-ccsm delete <session_id> --force
+ccsm delete <session_id> -y
 ```
 
 ### Scenario 2: Delete all sessions in a project
 
 ```bash
 # 1. Preview what will be deleted
-ccsm delete-project "~/Documents/Dev/myproject" --dry-run
+ccsm delete-project "~/Documents/Dev/myproject" -n
 
 # 2. Delete project + its .claude/ directory
-ccsm delete-project "~/Documents/Dev/myproject" --include-claude-dir --force
+ccsm delete-project "~/Documents/Dev/myproject" --include-claude-dir -y
 ```
 
 ### Scenario 3: Clean up orphaned sessions safely
 
 ```bash
 # 1. See orphan list
-ccsm cleanup --dry-run
+ccsm cleanup
 
 # 2. Delete ONE specific orphan (recommended for safety)
-ccsm delete <orphan_session_id> --force
+ccsm delete <orphan_session_id> -y
 
 # 3. Repeat for each orphan you want to remove
 ```
@@ -144,7 +144,7 @@ ccsm info <session_id> && echo "Session exists" || echo "Session not found"
 
 ## Important Notes for Agents
 
-1. **Always use `--dry-run` first** before any destructive operation (`delete`, `delete-project`, `cleanup --auto-remove`).
+1. **Always preview first**: Use `-n` or `--dry-run` with `delete` and `delete-project` to preview what will be deleted. Note that `cleanup` is a dry-run by default unless you provide `-y`.
 
 2. **Path normalization**: Both `~/path` and `/full/path/` work with `--project` and `delete-project`.
 

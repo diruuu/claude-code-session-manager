@@ -262,19 +262,40 @@ class SessionDiscovery:
 
         return projects
 
+    def get_projects_session_ids(self) -> set[str]:
+        """Get all session IDs that have .jsonl files in projects/.
+
+        Returns:
+            Set of session IDs that are linked to projects (have transcripts).
+        """
+        projects_sessions = set()
+        projects_dir = self.claude_dir / "projects"
+        if projects_dir.exists():
+            for proj_dir in projects_dir.iterdir():
+                if proj_dir.is_dir() and proj_dir.name != ".DS_Store":
+                    for session_file in proj_dir.glob("*.jsonl"):
+                        session_id = session_file.stem
+                        # Skip agent-* files (internal agent sessions)
+                        if not session_id.startswith("agent-"):
+                            projects_sessions.add(session_id)
+        return projects_sessions
+
     def get_orphan_sessions(self) -> list[Session]:
-        """Get sessions that don't have an associated project.
+        """Get sessions that don't have a corresponding .jsonl file in projects/.
+
+        An orphan session is one that exists in data directories (tasks/, todos/, etc.)
+        but has no transcript file in projects/.
 
         Returns:
             List of orphan Session objects.
         """
         sessions = self.discover_all_sessions()
-        session_to_project = self.session_to_project_map
+        projects_session_ids = self.get_projects_session_ids()
 
         orphans = []
         for session in sessions:
-            project_path = session.project_path or session_to_project.get(session.id)
-            if not project_path:
+            # If session ID is not in projects/, it's an orphan
+            if session.id not in projects_session_ids:
                 orphans.append(session)
 
         return orphans
